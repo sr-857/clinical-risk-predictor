@@ -10,7 +10,7 @@
 - [ ] **Unit Testing**: Add tests for model inference and API endpoints.
 
 ## Phase 2: The "Wow" Frontend (UX & Design)
-- [ ] **Design System**: Initialize Tailwind CSS + Recharts/Tremor for visualizations.
+- [x] **Design System**: Initialize Tailwind CSS + Recharts/Tremor for visualizations.
 - [ ] **Clinician Dashboard**:
     - [ ] Patient Search/List view.
     - [ ] Detailed Patient Risk View (Gauges, Feature contribution charts).
