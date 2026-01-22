@@ -250,7 +250,7 @@ cd backend
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-python app.py
+uvicorn api:app --reload --port 8000
 # Server runs on http://localhost:8000
 ```
 
@@ -258,16 +258,24 @@ python app.py
 ```bash
 cd frontend
 npm install
-npm start
-# App runs on http://localhost:3000
+npm run dev
+# App runs on http://localhost:5173
 ```
 
 ### ML Model Training
 ```bash
 cd ml-research
-python train.py
+python train_pro.py
 # Outputs model to backend/models/
 ```
+
+### 🐳 Docker Deployment (Recommended)
+You can run the full stack with a single command:
+```bash
+docker-compose up --build
+```
+- **Frontend**: http://localhost:3000
+- **Backend**: http://localhost:8000
 
 ---
 

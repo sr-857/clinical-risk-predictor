@@ -38,9 +38,25 @@ class RiskEngine:
         # Convert single dict to DataFrame
         df = pd.DataFrame([data])
         
-        # Feature Engineering: BMI * Age
+        # Feature Engineering: BMI Categories
+        if 'bmi' in df.columns:
+            # Replicate pd.cut logic manually or using numpy to be safe/fast
+            # bins=[0, 18.5, 24.9, 29.9, 100], labels=['Underweight', 'Normal', 'Overweight', 'Obese']
+            conditions = [
+                (df['bmi'] <= 18.5),
+                (df['bmi'] > 18.5) & (df['bmi'] <= 24.9),
+                (df['bmi'] > 24.9) & (df['bmi'] <= 29.9),
+                (df['bmi'] > 29.9)
+            ]
+            choices = ['Underweight', 'Normal', 'Overweight', 'Obese']
+            df['BMI_Category'] = np.select(conditions, choices, default='Obese')
+
+        # Feature Engineering: Interactions
         if 'bmi' in df.columns and 'age' in df.columns:
             df['BMI_Age_Interaction'] = df['bmi'] * df['age']
+            
+        if 'blood_glucose_level' in df.columns and 'HbA1c_level' in df.columns:
+            df['Glucose_HbA1c_Interaction'] = df['blood_glucose_level'] * df['HbA1c_level']
         
         return df
 
