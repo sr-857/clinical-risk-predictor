@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { simulateRisk, generateSimulationReport, type PredictionInput, type SimulationResponse } from '../api/client';
-import { RefreshCcw, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+import SkeletonLoader from './SkeletonLoader';
+import { RefreshCcw, ArrowRight, Sparkles } from 'lucide-react';
 import { debounce } from 'lodash';
 
 interface SimulationDashboardProps {
@@ -190,16 +191,19 @@ const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ originalData 
                                 Projected Risk Reduction: {(simulationResult.risk_reduction * 100).toFixed(1)}%
                             </div>
 
-                            {/* AI Analysis Button */}
                             <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
-                                {!aiReport ? (
+                                {loadingAi ? (
+                                    <div className="p-2">
+                                        <SkeletonLoader />
+                                    </div>
+                                ) : !aiReport ? (
                                     <button
                                         onClick={handleAnalyzeScenario}
                                         disabled={loadingAi}
                                         className="w-full flex items-center justify-center space-x-2 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50 rounded-lg transition-colors"
                                     >
-                                        {loadingAi ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
-                                        <span>{loadingAi ? "Analyzing..." : "Analyze with BioMistral"}</span>
+                                        <Sparkles size={16} />
+                                        <span>Analyze with BioMistral</span>
                                     </button>
                                 ) : (
                                     <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-800">

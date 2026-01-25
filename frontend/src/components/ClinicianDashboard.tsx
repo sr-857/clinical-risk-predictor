@@ -3,6 +3,7 @@ import RiskGauge from './RiskGauge';
 import ShapExplainer from './ShapExplainer';
 import SimulationDashboard from './SimulationDashboard';
 import { type PredictionResponse, type PredictionInput, generateReport } from '../api/client';
+import SkeletonLoader from './SkeletonLoader';
 import { RefreshCcw, FileText, Cpu, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -82,7 +83,11 @@ const ClinicianDashboard: React.FC<ClinicianDashboardProps> = ({ prediction, pat
                     </button>
                 </div>
 
-                {report ? (
+                {loadingReport ? (
+                    <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 min-h-[150px] flex items-center">
+                        <SkeletonLoader />
+                    </div>
+                ) : report ? (
                     <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
                         <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{report}</p>
                     </div>
