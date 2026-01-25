@@ -194,18 +194,106 @@ graph LR
 
 ### Data Flow
 ```mermaid
-flowchart LR
-    User((User)) -->|Input Vitals| Form["Patient Form"]
-    Form -->|POST /predict| API[FastAPI]
-    API -->|Data| ML[ML Model]
-    ML -->|Risk Score| API
-    ML -->|SHAP Values| API
-    API -->|Risk + Drivers| Dashboard[Dashboard]
-    User -->|Click Generate| Dashboard
-    Dashboard -->|POST /report| API
-    API -->|Patient Profile + Risk| LLM[BioMistral LLM]
-    LLM -->|Clinical Summary| API
-    API -->|Report| Dashboard
+flowchart TB
+    subgraph UserLayer["👤 User Interaction Layer"]
+        Clinician[Clinician]
+        Browser[Web Browser]
+    end
+    
+    subgraph Frontend["⚛️ Frontend Application"]
+        direction TB
+        InputForm["📝 Patient Input Form<br/><small>Demographics + Vitals</small>"]
+        Dashboard["📊 Clinician Dashboard<br/><small>Risk Visualization</small>"]
+        SimUI["🎛️ What-If Simulator<br/><small>Interactive Sliders</small>"]
+    end
+    
+    subgraph APIGateway["🔌 API Gateway Layer"]
+        direction TB
+        PredictAPI["/predict<br/><small>Risk Assessment</small>"]
+        SimulateAPI["/simulate<br/><small>Counterfactuals</small>"]
+        ReportAPI["/report<br/><small>AI Summary</small>"]
+        HistoryAPI["/history<br/><small>Longitudinal Data</small>"]
+    end
+    
+    subgraph Processing["🧠 Processing Layer"]
+        direction TB
+        
+        subgraph MLPipeline["ML Pipeline"]
+            Preprocess["Feature Engineering<br/><small>Scaling + Interactions</small>"]
+            Ensemble["Stacking Ensemble<br/><small>XGB+LGBM+CatBoost</small>"]
+            SHAP["SHAP Explainer<br/><small>Feature Attribution</small>"]
+        end
+        
+        subgraph AIEngine["AI Engine"]
+            PromptBuilder["Prompt Constructor<br/><small>Clinical Context</small>"]
+            LLM["BioMistral-7B<br/><small>Medical LLM</small>"]
+            PostProcess["Response Parser<br/><small>JSON Extraction</small>"]
+        end
+        
+        subgraph Analytics["Analytics Engine"]
+            VelocityCalc["Risk Velocity<br/><small>Δ Risk / Δ Time</small>"]
+            CohortMatch["Digital Twin Finder<br/><small>K-NN Similarity</small>"]
+        end
+    end
+    
+    subgraph DataStore["💾 Data Persistence"]
+        direction LR
+        HistoryDB[("Patient History<br/>JSON Store")]
+        PopDB[("Population DB<br/>100K Records")]
+        Models[("Model Artifacts<br/>.joblib")]
+    end
+    
+    %% Workflow 1: Risk Prediction
+    Clinician -->|"1. Enter Vitals"| InputForm
+    InputForm -->|"2. POST Patient Data"| PredictAPI
+    PredictAPI -->|"3. Raw Features"| Preprocess
+    Preprocess -->|"4. Engineered Features"| Ensemble
+    Ensemble -->|"5. Risk Score (0-1)"| SHAP
+    SHAP -->|"6. Score + Explanations"| PredictAPI
+    PredictAPI -->|"7. Save Assessment"| HistoryDB
+    PredictAPI -->|"8. Return Results"| Dashboard
+    Dashboard -->|"9. Display Risk Gauge"| Clinician
+    
+    %% Workflow 2: What-If Simulation
+    Clinician -->|"10. Adjust Sliders"| SimUI
+    SimUI -->|"11. POST Modified Vitals"| SimulateAPI
+    SimulateAPI -->|"12. Counterfactual Input"| Ensemble
+    Ensemble -->|"13. New Risk Score"| SimulateAPI
+    SimulateAPI -->|"14. Risk Reduction %"| SimUI
+    
+    %% Workflow 3: AI Report Generation
+    Dashboard -->|"15. Request Report"| ReportAPI
+    ReportAPI -->|"16. Fetch Patient Context"| HistoryDB
+    HistoryDB -->|"17. Historical Data"| PromptBuilder
+    PromptBuilder -->|"18. Clinical Prompt"| LLM
+    LLM -->|"19. Natural Language Summary"| PostProcess
+    PostProcess -->|"20. Structured Report"| ReportAPI
+    ReportAPI -->|"21. Display Summary"| Dashboard
+    
+    %% Workflow 4: Longitudinal Analysis
+    HistoryAPI -->|"22. Query History"| HistoryDB
+    HistoryDB -->|"23. Time Series Data"| VelocityCalc
+    VelocityCalc -->|"24. Trend Metrics"| Dashboard
+    
+    %% Workflow 5: Cohort Comparison
+    PredictAPI -->|"25. Patient Profile"| CohortMatch
+    CohortMatch -->|"26. Query Similar"| PopDB
+    PopDB -->|"27. Digital Twins"| Dashboard
+    
+    %% Data Access
+    Ensemble -.->|"Load Model"| Models
+    
+    classDef userStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef frontendStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef apiStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef processStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    classDef dataStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    
+    class Clinician,Browser userStyle
+    class InputForm,Dashboard,SimUI frontendStyle
+    class PredictAPI,SimulateAPI,ReportAPI,HistoryAPI apiStyle
+    class Preprocess,Ensemble,SHAP,PromptBuilder,LLM,PostProcess,VelocityCalc,CohortMatch processStyle
+    class HistoryDB,PopDB,Models dataStyle
 ```
 
 ### Interaction Sequence
