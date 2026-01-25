@@ -8,13 +8,12 @@
     - [x] `POST /predict` (Risk Scoring)
     - [x] `POST /explain` (SHAP)
     - [x] `POST /simulate` (Type-2 Counterfactuals)
-    - [x] `POST /simulate` (Type-2 Counterfactuals)
     - [x] `POST /report` (Embedded BioMistral LLM)
 
 ## Phase 2: The "Wow" Frontend (UX & Design)
 - [x] **Design System**: Tailwind CSS + Framer Motion.
 - [x] **Clinician Dashboard**:
-    - [x] Risk Gauge & SHAP Plots.
+    - [x] Clinician Dashboard UI.
     - [x] **Interactive "What-If" Simulation**: Sliders for BMI/Glucose.
     - [x] **AI Clinical Reports**: LLM-generated summaries.
 
@@ -27,3 +26,19 @@
 - [x] **Dockerization**: `Dockerfile` and `docker-compose.yml` created.
 - [x] **Documentation**: Updated `README.md` with new features and setup.
 - [x] **Visual Polish**: Advanced animations (AI-Powered Simulation).
+
+## Phase 5: Advanced Backend Features (Completed)
+- [x] **Cohort Intelligence Engine**:
+    - [x] `GET /cohort/analysis`: Population percentiles.
+    - [x] "Digital Twin" Discovery: Nearest neighbor search for similar patients.
+- [x] **Longitudinal Risk Velocity**:
+    - [x] Calculate "Risk Velocity" (rate of change) in `HistoryEngine`.
+    - [x] Alert flags for rapidly deteriorating health.
+- [x] **Professional Clinical Reports**:
+    - [x] PDF Generation Service (FPDF).
+    - [x] Embed visualizations & QR codes in PDF.
+- [x] **Expert Feedback Loop**:
+    - [x] `POST /feedback`: Store clinician validation.
+    - [x] Active Learning pipeline preparation.
+- [x] **Interoperability Layer**:
+    - [x] FHIR R4 Converters for Patient and RiskAssessment resources.

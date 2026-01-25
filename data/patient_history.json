@@ -151,5 +151,22 @@
             "score": 0.99949012049281,
             "level": "High"
         }
+    },
+    {
+        "timestamp": "2026-01-25T14:15:01.067105",
+        "patient_data": {
+            "gender": "Male",
+            "age": 56.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 34.0,
+            "HbA1c_level": 9.0,
+            "blood_glucose_level": 99.0
+        },
+        "risk_assessment": {
+            "score": 0.9995143544563883,
+            "level": "High"
+        }
     }
 ]

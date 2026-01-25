@@ -23,7 +23,7 @@ export interface PredictionInput {
 export interface PredictionResponse {
     risk_score: number;
     risk_level: string;
-    shap_values?: Record<string, number>; // Optional as it comes from a separate call or merged
+    shap_values?: Record<string, number>;
     explanations?: Array<{
         feature: string;
         impact_score: number;
@@ -32,11 +32,8 @@ export interface PredictionResponse {
 }
 
 export const predictRisk = async (data: PredictionInput): Promise<PredictionResponse> => {
-    // 1. Get Prediction
     const predictionRes = await apiClient.post<{ risk_score: number; risk_level: string }>('/predict', data);
 
-    // 2. Get Explanations (Parallel or sequential depending on need, sequential for simplicity here)
-    // Note: In a real app, you might want into a single endpoint or handle failures gracefully
     let explanations: PredictionResponse['explanations'] = [];
     try {
         const explainRes = await apiClient.post<{ explanations: PredictionResponse['explanations'] }>('/explain', data);
@@ -45,10 +42,6 @@ export const predictRisk = async (data: PredictionInput): Promise<PredictionResp
         console.warn("Could not fetch explanations:", error);
     }
 
-    // 3. Merge results
-    // Mapping definitions to shap_values format if needed by legacy components, 
-    // or just pass explanations directly. 
-    // The existing components use 'shap_values: Record<string, number>'.
     const shap_values: Record<string, number> = {};
     explanations?.forEach(exp => {
         shap_values[exp.feature] = exp.impact_score;
@@ -77,8 +70,10 @@ export const simulateRisk = async (
     });
     return response.data;
 };
+
 export interface ReportResponse {
     report: string;
+    pdf_url?: string;
 }
 
 export const generateReport = async (patient: PredictionInput): Promise<ReportResponse> => {
@@ -94,5 +89,80 @@ export const generateSimulationReport = async (
         patient,
         modifications
     });
+    return response.data;
+};
+
+// --- New Feature Interfaces ---
+
+export interface CohortAnalysis {
+    percentiles: Record<string, number>;
+}
+
+export interface DigitalTwin {
+    gender: string;
+    age: number;
+    bmi: number;
+    HbA1c_level: number;
+    blood_glucose_level: number;
+    diabetes: number;
+}
+
+export const getCohortAnalysis = async (patient: PredictionInput): Promise<CohortAnalysis> => {
+    const response = await apiClient.post<CohortAnalysis>('/cohort/analysis', patient);
+    return response.data;
+};
+
+export const getDigitalTwins = async (patient: PredictionInput): Promise<DigitalTwin[]> => {
+    const response = await apiClient.post<{ twins: DigitalTwin[] }>('/cohort/twins', patient);
+    return response.data.twins;
+};
+
+export interface HistoryRecord {
+    timestamp: string;
+    patient_data: PredictionInput;
+    risk_assessment: {
+        score: number;
+        level: string;
+    };
+}
+
+export interface HistoryResponse {
+    history: HistoryRecord[];
+    trend_analysis?: {
+        velocity: number;
+        status: string;
+    };
+}
+
+export const getHistory = async (limit: number = 10): Promise<HistoryResponse> => {
+    // Determine if the backend returns List or Dict (Velocity update changed it to Dict)
+    // We handle the update.
+    const response = await apiClient.get<HistoryResponse | HistoryRecord[]>('/history', { params: { limit } });
+
+    // Normalize response if backend is still old version (just in case, though we updated it)
+    if (Array.isArray(response.data)) {
+        return { history: response.data };
+    }
+    return response.data;
+};
+
+export const submitFeedback = async (
+    patient: PredictionInput,
+    predicted_risk: number,
+    agreed: boolean,
+    notes: string,
+    actual_diagnosis?: number
+): Promise<void> => {
+    await apiClient.post('/feedback/', {
+        patient_data: patient,
+        predicted_risk,
+        agreed,
+        clinician_notes: notes,
+        actual_diagnosis
+    });
+};
+
+export const getFHIRBundle = async (patient: PredictionInput): Promise<any> => {
+    const response = await apiClient.post('/fhir/bundle', patient);
     return response.data;
 };

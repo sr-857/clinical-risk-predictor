@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from typing import List, Dict, Any
 import sys
 import os
@@ -12,11 +11,31 @@ from backend.models.risk_engine import RiskEngine
 from backend.models.counterfactuals import Counterfactuals
 # from backend.models.llm_engine import LLMEngine # Deprecated
 from backend.models.clinical_llm import ClinicalLLM
-
 from backend.models.history_engine import HistoryEngine
 
+# Import Schemas
+from backend.schemas.patient import (
+    PatientRequest, RiskResponse, ExplanationResponse, 
+    ReportResponse, SimulationRequest, SimulationResponse
+)
+
+# Import Routes
+from backend.routes import cohort, feedback, fhir
+
+from fastapi.staticfiles import StaticFiles
+from backend.models.pdf_service import PDFService
+
 # 1. Initialize App
-app = FastAPI(title="Clinical Risk Predictor API", version="1.0")
+app = FastAPI(title="Clinical Risk Predictor API", version="2.0")
+
+# Mount PDF directory
+pdf_dir = os.path.join(os.getcwd(), "backend", "pdfs")
+os.makedirs(pdf_dir, exist_ok=True)
+app.mount("/pdfs", StaticFiles(directory=pdf_dir), name="pdfs")
+# Include Routers
+app.include_router(cohort.router)
+app.include_router(feedback.router)
+app.include_router(fhir.router)
 
 # 2. CORS Setup (Allow All for Dev)
 app.add_middleware(
@@ -52,26 +71,13 @@ except Exception as e:
     print(f"Error initializing History Engine: {e}")
     history_engine = None
 
-# 4. Data Models
-class PatientRequest(BaseModel):
-    gender: str
-    age: float
-    hypertension: int
-    heart_disease: int
-    smoking_history: str
-    bmi: float
-    HbA1c_level: float
-    blood_glucose_level: float
-    
-class RiskResponse(BaseModel):
-    risk_score: float
-    risk_level: str
-
-class ExplanationResponse(BaseModel):
-    explanations: List[Dict[str, Any]]
-
-class ReportResponse(BaseModel):
-    report: str
+# Initialize PDF Service
+try:
+    pdf_service = PDFService()
+    print("PDF Service initialized.")
+except Exception as e:
+    print(f"Error initializing PDF Service: {e}")
+    pdf_service = None
 
 # 5. Helper Functions
 def get_risk_level(score: float) -> str:
@@ -130,14 +136,6 @@ def explain_risk(patient: PatientRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-class SimulationRequest(BaseModel):
-    patient: PatientRequest
-    modifications: Dict[str, Any]
-
-class SimulationResponse(BaseModel):
-    original_risk: float
-    new_risk: float
-    risk_reduction: float
 
 @app.post("/simulate", response_model=SimulationResponse)
 def simulate_risk(request: SimulationRequest):
@@ -202,7 +200,19 @@ def generate_report(patient: PatientRequest):
         explanations = risk_engine.explain_risk(data)
         
         report = clinical_llm.generate_report(data, score, level, explanations)
-        return {"report": report}
+        
+        pdf_filename = None
+        pdf_url = None
+        
+        if pdf_service:
+            try:
+                pdf_filename = pdf_service.generate_report(data, score, level, report)
+                # Helper to get base URL? For now relative
+                pdf_url = f"/pdfs/{pdf_filename}"
+            except Exception as pdf_e:
+                print(f"Error generating PDF: {pdf_e}")
+
+        return {"report": report, "pdf_url": pdf_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

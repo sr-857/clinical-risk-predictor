@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime
 from typing import Dict, Any, List
+import numpy as np
 
 class HistoryEngine:
     def __init__(self, storage_file="data/patient_history.json"):
@@ -50,9 +51,49 @@ class HistoryEngine:
         self._save_history()
         return record
 
-    def get_history(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_history(self, limit: int = 10) -> Dict[str, Any]:
         """
-        Get the most recent history records.
+        Get the most recent history records + trend analysis.
         """
         # Return last N records, reversed (newest first)
-        return self.history[-limit:][::-1]
+        recent = self.history[-limit:][::-1]
+        velocity, alert = self.calculate_risk_velocity()
+        
+        return {
+            "history": recent,
+            "trend_analysis": {
+                "velocity": velocity,
+                "status": alert
+            }
+        }
+
+    def calculate_risk_velocity(self) -> tuple:
+        """
+        Calculates the rate of change of risk scores (Risk Velocity).
+        Returns: (slope, status_message)
+        """
+        if len(self.history) < 2:
+            return 0.0, "Insufficient Data"
+        
+        # Get last 5 data points
+        data_points = self.history[-5:]
+        scores = [r['risk_assessment']['score'] for r in data_points]
+        x = range(len(scores))
+        
+        try:
+            # Simple linear regression (slope)
+            slope = float(np.polyfit(x, scores, 1)[0])
+            
+            # Determine Alert Status
+            if slope > 0.05:
+                status = "Critical: Rapid Risk Increase 🔺"
+            elif slope > 0.01:
+                status = "Warning: Rising Risk ⚠️"
+            elif slope < -0.01:
+                status = "Positive: Risk Decreasing 📉"
+            else:
+                status = "Stable 🔵"
+                
+            return round(slope, 4), status
+        except Exception:
+            return 0.0, "Error"
