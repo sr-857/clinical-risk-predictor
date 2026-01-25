@@ -177,12 +177,12 @@ graph LR
     HistoryEP --> VelocityCalc
     VelocityCalc --> PatientHistory
     
-    classDef clientStyle fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
-    classDef frontendStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef apiStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef intelligenceStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
-    classDef dataStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    classDef serviceStyle fill:#f1f8e9,stroke:#689f38,stroke-width:2px
+    classDef clientStyle fill:#e1f5ff,stroke:#0288d1,stroke-width:2px,color:#000
+    classDef frontendStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef apiStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef intelligenceStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef dataStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    classDef serviceStyle fill:#f1f8e9,stroke:#689f38,stroke-width:2px,color:#000
     
     class Browser clientStyle
     class AppShell,UI_Components,Visualizations frontendStyle
