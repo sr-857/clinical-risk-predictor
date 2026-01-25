@@ -20,6 +20,39 @@ We implemented a 2-stage Stacking Ensemble to maximize F1 score and Robustness.
 2.  **Binning**:
     -   `BMI_Category`: (Underweight, Normal, Overweight, Obese) derived from WHO standards.
 
+## Model Architecture Diagram
+
+```mermaid
+graph TD
+    subgraph Input
+        Raw[Raw Patient Data] --> Clean[Cleaning & Imputation]
+    end
+
+    subgraph FeatureEngineering [Feature Engineering Pipeline]
+        Clean --> Inter[Interaction Creation]
+        Inter --> Scaling[Standard Scaling]
+        Scaling --> Encoding[One-Hot Encoding]
+    end
+
+    subgraph Ensemble [Stacking Ensemble]
+        Encoding --> XGB[XGBoost (Gradient Boosting)]
+        Encoding --> LGBM[LightGBM (Leaf-wise)]
+        Encoding --> Cat[CatBoost (Ordered Boosting)]
+        
+        XGB -- Probabilities --> Meta[Meta-Learner]
+        LGBM -- Probabilities --> Meta
+        Cat -- Probabilities --> Meta
+        
+        Meta[Logistic Regression] --> Final[Final Calibrated Risk Score]
+    end
+    
+    subgraph Explanation
+        Final -.-> SHAP[SHAP Explainer]
+        SHAP --> LocalExp[Local Feature Importance]
+    end
+```
+
+
 ## Results
 - **Optimization**: Hyperparameters tuned via `Optuna` (simulated/defaults for speed).
 - **Validation**: 5-Fold Stratified Cross-Validation.

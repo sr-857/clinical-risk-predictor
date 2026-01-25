@@ -83,38 +83,58 @@ Clinical Risk Predictor is a full-stack AI/ML application designed for real-worl
 ```mermaid
 graph TD
     Client[Client Browser]
-    subgraph Frontend [React Frontend]
-        UI[Clinician Dashboard]
-        Components[Risk Gauge, Trend Chart, Cohort Card]
-        API_Client[API Client]
-    end
-    subgraph Backend [FastAPI Backend]
-        API[API Gateway]
-        RiskEng["Risk Engine (XGBoost)"]
-        CohortEng["Cohort Engine (Nearest Neighbors)"]
-        SHAP["SHAP Explainer"]
-        subgraph EmbeddedAI [Embedded AI]
-           GPT4All["GPT4All Engine"]
-           BioMistral["BioMistral-7B Model"]
+    
+    subgraph Frontend [React + Vite Frontend]
+        Shell[AppShell Layout]
+        Inputs[PatientInputs Form]
+        Dashboard[Clinician Dashboard]
+        
+        Shell --> Inputs
+        Shell --> Dashboard
+        
+        subgraph Widgets
+            Gauge[Risk Gauge]
+            Trends[Longitudinal Trends]
+            Twins[Cohort Digital Twins]
+            Sim[What-If Simulation]
         end
-        History["History Engine (SQLite)"]
-        PDF["PDF Service (FPDF2)"]
-        FHIR["FHIR Converter (R4)"]
+        
+        Dashboard --> Widgets
     end
     
-    Client --> UI
-    UI --> Components
-    Components --> API_Client
-    API_Client -->|JSON| API
-    API --> RiskEng
-    RiskEng --> SHAP
-    API --> CohortEng
-    API --> EmbeddedAI
-    EmbeddedAI --> GPT4All
-    GPT4All --> BioMistral
+    subgraph Backend [FastAPI Backend :8001]
+        API[API Gateway]
+        
+        subgraph CoreML [ML Risk Engine]
+            Pipeline[SOTA Pipeline .joblib]
+            SHAP[SHAP Explainer]
+        end
+        
+        subgraph GenAI [Generative Intelligence]
+            LLM[BioMistral-7B (GGUF)]
+            Prompt[Clinical Prompt Eng.]
+        end
+        
+        subgraph DataLayer [Data Persistence]
+            History[(History.json / SQLite)]
+            CohortDB[(Population Dataset)]
+        end
+        
+        PDF[PDF Report Generator]
+    end
+    
+    Client --> API
+    Inputs -->|POST /predict| API
+    Dashboard -->|GET /history| API
+    Dashboard -->|POST /simulate| API
+    
+    API --> Pipeline
+    Pipeline --> SHAP
+    
+    API --> LLM
     API --> History
+    API --> CohortDB
     API --> PDF
-    API --> FHIR
 ```
 
 ### Data Flow
