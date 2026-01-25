@@ -81,60 +81,115 @@ Clinical Risk Predictor is a full-stack AI/ML application designed for real-worl
 
 ### High-Level Architecture
 ```mermaid
-graph TD
-    Client[Client Browser]
-    
-    subgraph Frontend [React + Vite Frontend]
-        Shell[AppShell Layout]
-        Inputs[PatientInputs Form]
-        Dashboard[Clinician Dashboard]
-        
-        Shell --> Inputs
-        Shell --> Dashboard
-        
-        subgraph Widgets
-            Gauge[Risk Gauge]
-            Trends[Longitudinal Trends]
-            Twins[Cohort Digital Twins]
-            Sim[What-If Simulation]
-        end
-        
-        Dashboard --> Widgets
+graph LR
+    subgraph Client["🌐 Client Layer"]
+        Browser[Web Browser]
     end
     
-    subgraph Backend [FastAPI Backend :8001]
-        API[API Gateway]
+    subgraph Presentation["⚛️ Presentation Layer (React + Vite)"]
+        direction TB
+        AppShell[App Shell & Navigation]
         
-        subgraph CoreML [ML Risk Engine]
-            Pipeline[SOTA Pipeline .joblib]
-            SHAP[SHAP Explainer]
+        subgraph UI_Components["UI Components"]
+            PatientForm[Patient Input Form]
+            Dashboard[Clinician Dashboard]
         end
         
-        subgraph GenAI [Generative Intelligence]
-            LLM["BioMistral-7B (GGUF)"]
-            Prompt[Clinical Prompt Eng.]
+        subgraph Visualizations["Data Visualizations"]
+            RiskGauge[Risk Gauge]
+            TrendChart[Longitudinal Trends]
+            CohortView[Digital Twins Table]
+            SimSliders[What-If Sliders]
         end
         
-        subgraph DataLayer [Data Persistence]
-            History[("History.json / SQLite")]
-            CohortDB[("Population Dataset")]
-        end
-        
-        PDF[PDF Report Generator]
+        AppShell --> UI_Components
+        UI_Components --> Visualizations
     end
     
-    Client --> API
-    Inputs -->|POST /predict| API
-    Dashboard -->|GET /history| API
-    Dashboard -->|POST /simulate| API
+    subgraph API_Layer["🔌 API Gateway (FastAPI :8001)"]
+        Router[REST API Router]
+        
+        subgraph Endpoints["Core Endpoints"]
+            PredictEP["/predict"]
+            SimulateEP["/simulate"]
+            ReportEP["/report"]
+            HistoryEP["/history"]
+            CohortEP["/cohort"]
+        end
+        
+        Router --> Endpoints
+    end
     
-    API --> Pipeline
-    Pipeline --> SHAP
+    subgraph Intelligence["🧠 Intelligence Layer"]
+        direction TB
+        
+        subgraph ML_Engine["ML Risk Engine"]
+            Ensemble["SOTA Stacking Ensemble<br/>(XGBoost + LightGBM + CatBoost)"]
+            Explainer["SHAP Explainability"]
+        end
+        
+        subgraph AI_Engine["Generative AI"]
+            BioMistral["BioMistral-7B<br/>(Medical LLM)"]
+            PromptEngine[Clinical Prompt Templates]
+        end
+        
+        subgraph Analytics["Population Analytics"]
+            CohortEngine[Cohort Analysis Engine]
+            TwinFinder[Digital Twin Matcher]
+        end
+    end
     
-    API --> LLM
-    API --> History
-    API --> CohortDB
-    API --> PDF
+    subgraph Data["💾 Data Layer"]
+        direction TB
+        PatientHistory[("Patient History<br/>JSON Store")]
+        PopulationDB[("Population Dataset<br/>100K+ Records")]
+        ModelArtifacts[("Trained Models<br/>.joblib")]
+    end
+    
+    subgraph Services["🛠️ Support Services"]
+        PDFGen[PDF Report Generator]
+        FHIRConv[FHIR R4 Converter]
+        VelocityCalc[Risk Velocity Calculator]
+    end
+    
+    %% Client to Presentation
+    Browser <-->|HTTP/JSON| Presentation
+    
+    %% Presentation to API
+    Presentation <-->|REST API| Router
+    
+    %% API to Intelligence
+    PredictEP --> ML_Engine
+    SimulateEP --> ML_Engine
+    ReportEP --> AI_Engine
+    HistoryEP --> Analytics
+    CohortEP --> Analytics
+    
+    %% Intelligence to Data
+    ML_Engine <--> ModelArtifacts
+    ML_Engine --> PatientHistory
+    Analytics <--> PopulationDB
+    AI_Engine --> PatientHistory
+    
+    %% Services Integration
+    ReportEP --> PDFGen
+    Router --> FHIRConv
+    HistoryEP --> VelocityCalc
+    VelocityCalc --> PatientHistory
+    
+    classDef clientStyle fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
+    classDef frontendStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef apiStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef intelligenceStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    classDef dataStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef serviceStyle fill:#f1f8e9,stroke:#689f38,stroke-width:2px
+    
+    class Browser clientStyle
+    class AppShell,UI_Components,Visualizations frontendStyle
+    class Router,Endpoints apiStyle
+    class ML_Engine,AI_Engine,Analytics intelligenceStyle
+    class PatientHistory,PopulationDB,ModelArtifacts dataStyle
+    class PDFGen,FHIRConv,VelocityCalc serviceStyle
 ```
 
 ### Data Flow
