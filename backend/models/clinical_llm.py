@@ -53,9 +53,17 @@ class ClinicalLLM:
 
         print(f"🧠 Loading Clinical Model: {self.filename}...")
         try:
-            # Initialize GPT4All model
-            # allow_download=False because we manually downloaded it
-            self.model = GPT4All(model_name=self.filename, model_path=self.weights_dir, allow_download=False, device='cpu')
+            # Suppress CUDA DLL loading warnings by redirecting stderr temporarily
+            import io
+            import contextlib
+            
+            # Capture stderr to suppress CUDA DLL warnings
+            stderr_capture = io.StringIO()
+            with contextlib.redirect_stderr(stderr_capture):
+                # Initialize GPT4All model
+                # allow_download=False because we manually downloaded it
+                self.model = GPT4All(model_name=self.filename, model_path=self.weights_dir, allow_download=False, device='cpu')
+            
             print("✅ Clinical Model loaded successfully.")
         except Exception as e:
             print(f"❌ Failed to load model execution: {e}")

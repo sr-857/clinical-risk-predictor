@@ -28,7 +28,9 @@
 ## Phase 4: Deployment & Polish
 - [x] **Backend Port**: Fixed conflict (Moved to 8001).
 - [x] **Dockerization**: `Dockerfile` and `docker-compose.yml` created.
-- [x] **Documentation**: Updated `README.md` with new features and setup.
+- [x] **Documentation**: 
+    - [x] Updated `README.md` with new features and setup.
+    - [x] Added System Architecture & ML Diagrams.
 - [x] **Visual Polish**: Advanced animations (AI-Powered Simulation).
 
 ## Phase 5: Advanced Backend Features (Completed)
