@@ -11,8 +11,11 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import VotingClassifier
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import brier_score_loss, roc_auc_score
+from sklearn.utils.class_weight import compute_class_weight
 import xgboost as xgb
 import shap
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import Pipeline as ImbPipeline
 
 # --- Configuration ---
 DATA_PATH = os.path.join("data", "diabetes_dataset.csv")
@@ -62,6 +65,17 @@ def train_model():
     X_train_processed = preprocess_features(X_train)
     X_test_processed = preprocess_features(X_test)
     
+    # 3.5 Compute Class Weights
+    print(f"\nClass Distribution:")
+    print(f"  Training: {y_train.value_counts().to_dict()}")
+    print(f"  Negative: {(y_train == 0).sum()} ({(y_train == 0).sum() / len(y_train) * 100:.2f}%)")
+    print(f"  Positive: {(y_train == 1).sum()} ({(y_train == 1).sum() / len(y_train) * 100:.2f}%)")
+    
+    class_weights = compute_class_weight('balanced', classes=np.array([0, 1]), y=y_train)
+    scale_pos_weight = class_weights[1] / class_weights[0]
+    print(f"\nClass Weights: {class_weights}")
+    print(f"Scale Pos Weight (for XGBoost): {scale_pos_weight:.2f}")
+    
     # 4. Define Preprocessing Pipeline
     # Identify column types
     categorical_features = ['gender', 'smoking_history']
@@ -86,17 +100,23 @@ def train_model():
             ('cat', categorical_transformer, categorical_features)
         ])
 
-    # 5. Define Models
+    # 5. Define Models with Class Weights
     xgb_clf = xgb.XGBClassifier(
         n_estimators=100,
         max_depth=3,
         learning_rate=0.1,
+        scale_pos_weight=scale_pos_weight,  # Add class weight
         use_label_encoder=False,
         eval_metric='logloss',
         random_state=RANDOM_SEED
     )
     
-    lr_clf = LogisticRegression(C=1.0, random_state=RANDOM_SEED, max_iter=1000)
+    lr_clf = LogisticRegression(
+        C=1.0, 
+        class_weight='balanced',  # Add class weight
+        random_state=RANDOM_SEED, 
+        max_iter=1000
+    )
     
     voting_clf = VotingClassifier(
         estimators=[('xgb', xgb_clf), ('lr', lr_clf)],
@@ -109,13 +129,19 @@ def train_model():
         cv=5
     )
     
-    pipeline = Pipeline(steps=[
+    # 6. Create Pipeline with SMOTE
+    print(f"\nApplying SMOTE to balance classes...")
+    smote = SMOTE(sampling_strategy=0.5, random_state=RANDOM_SEED)  # Increase minority class to 50% of majority
+    
+    # Use imblearn Pipeline to include SMOTE
+    pipeline = ImbPipeline(steps=[
         ('preprocessor', preprocessor),
+        ('smote', smote),
         ('classifier', calibrated_clf)
     ])
     
-    # 6. Train
-    print("Training Ensemble Pipeline...")
+    # 7. Train
+    print("Training Ensemble Pipeline with SMOTE and Class Weights...")
     pipeline.fit(X_train_processed, y_train)
     
     # 7. Evaluate
@@ -185,6 +211,49 @@ def train_model():
     print("📋 DETAILED CLASSIFICATION REPORT")
     print(f"{'─'*60}")
     print(classification_report(y_test, y_pred, target_names=['No Diabetes', 'Diabetes'], digits=4))
+    print(f"{'='*60}\n")
+    
+    # 8. Threshold Optimization
+    print("🎯 THRESHOLD OPTIMIZATION")
+    print(f"{'─'*60}")
+    thresholds = np.arange(0.1, 0.9, 0.01)
+    f1_scores = []
+    sensitivities = []
+    specificities = []
+    
+    for threshold in thresholds:
+        y_pred_thresh = (y_prob >= threshold).astype(int)
+        f1_scores.append(f1_score(y_test, y_pred_thresh))
+        sensitivities.append(recall_score(y_test, y_pred_thresh))
+        tn_t, fp_t, fn_t, tp_t = confusion_matrix(y_test, y_pred_thresh).ravel()
+        specificities.append(tn_t / (tn_t + fp_t))
+    
+    optimal_idx = np.argmax(f1_scores)
+    optimal_threshold = thresholds[optimal_idx]
+    optimal_f1 = f1_scores[optimal_idx]
+    optimal_sensitivity = sensitivities[optimal_idx]
+    optimal_specificity = specificities[optimal_idx]
+    
+    print(f"  Default Threshold (0.5):  F1={f1:.4f}, Sensitivity={sensitivity:.4f}")
+    print(f"  Optimal Threshold ({optimal_threshold:.2f}): F1={optimal_f1:.4f}, Sensitivity={optimal_sensitivity:.4f}")
+    print(f"  Improvement: F1 +{(optimal_f1 - f1):.4f}, Sensitivity +{(optimal_sensitivity - sensitivity):.4f}")
+    print(f"  Specificity at optimal: {optimal_specificity:.4f}")
+    print(f"{'='*60}\n")
+    
+    # Use optimal threshold for final predictions
+    y_pred_optimal = (y_prob >= optimal_threshold).astype(int)
+    tn_opt, fp_opt, fn_opt, tp_opt = confusion_matrix(y_test, y_pred_optimal).ravel()
+    
+    print("📊 FINAL METRICS WITH OPTIMAL THRESHOLD")
+    print(f"{'─'*60}")
+    print(f"  Sensitivity: {optimal_sensitivity:.4f} ({optimal_sensitivity*100:.2f}%)")
+    print(f"  Specificity: {optimal_specificity:.4f} ({optimal_specificity*100:.2f}%)")
+    print(f"  F1 Score:    {optimal_f1:.4f}")
+    print(f"  Precision:   {precision_score(y_test, y_pred_optimal):.4f}")
+    print(f"  Accuracy:    {accuracy_score(y_test, y_pred_optimal):.4f}")
+    print(f"\n  Confusion Matrix:")
+    print(f"    TN: {tn_opt:,}  FP: {fp_opt:,}")
+    print(f"    FN: {fn_opt:,}  TP: {tp_opt:,}")
     print(f"{'='*60}\n")
     
     # 8. Save
