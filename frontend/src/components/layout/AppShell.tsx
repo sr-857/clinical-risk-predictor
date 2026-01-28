@@ -1,11 +1,23 @@
-import React, { type ReactNode } from 'react';
-import { Activity, HelpCircle, User, Menu } from 'lucide-react';
+import React, { type ReactNode, useState } from 'react';
+import { Activity, HelpCircle, User, Menu, LogOut, ChevronDown } from 'lucide-react';
 
 interface AppShellProps {
     children: ReactNode;
+    user?: { email: string; name: string; specialty?: string } | null;
+    onLogout?: () => void;
 }
 
-const AppShell: React.FC<AppShellProps> = ({ children }) => {
+const AppShell: React.FC<AppShellProps> = ({ children, user, onLogout }) => {
+    const [showUserMenu, setShowUserMenu] = useState(false);
+
+    const getInitials = (name: string) => {
+        return name
+            .split(' ')
+            .map(n => n[0])
+            .join('')
+            .toUpperCase();
+    };
+
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-200 font-sans text-slate-900 dark:text-slate-100 selection:bg-blue-100 dark:selection:bg-blue-900">
             {/* Navbar */}
@@ -40,9 +52,61 @@ const AppShell: React.FC<AppShellProps> = ({ children }) => {
                             <HelpCircle size={20} />
                         </button>
 
-                        <button className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors" aria-label="User Profile">
-                            <User size={16} />
-                        </button>
+                        {/* User Menu */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowUserMenu(!showUserMenu)}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                aria-label="User Profile"
+                            >
+                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm font-medium shadow-md">
+                                    {user?.name ? getInitials(user.name) : <User size={16} />}
+                                </div>
+                                {user && (
+                                    <div className="hidden sm:flex flex-col items-start text-xs">
+                                        <span className="font-semibold text-slate-900 dark:text-white">{user.name}</span>
+                                        {user.specialty && <span className="text-slate-500 dark:text-slate-400">{user.specialty}</span>}
+                                    </div>
+                                )}
+                                <ChevronDown size={16} className="hidden sm:block text-slate-400 dark:text-slate-500" />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {showUserMenu && user && (
+                                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 py-2 z-10">
+                                    <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+                                        <p className="font-semibold text-slate-900 dark:text-white text-sm">{user.name}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 break-words">{user.email}</p>
+                                        {user.specialty && (
+                                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">{user.specialty}</p>
+                                        )}
+                                    </div>
+                                    <a
+                                        href="#"
+                                        className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                    >
+                                        My Profile
+                                    </a>
+                                    <a
+                                        href="#"
+                                        className="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                                    >
+                                        Settings
+                                    </a>
+                                    <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
+                                    <button
+                                        onClick={() => {
+                                            setShowUserMenu(false);
+                                            onLogout?.();
+                                        }}
+                                        className="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center gap-2"
+                                    >
+                                        <LogOut size={16} />
+                                        Sign Out
+                                    </button>
+                                </div>
+                            )}
+                        </div>
 
                         <button className="md:hidden text-slate-500" aria-label="Menu">
                             <Menu size={24} />

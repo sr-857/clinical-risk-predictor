@@ -16,20 +16,18 @@ class RiskEngine:
         self.pipeline = joblib.load(self.model_path)
         
         # Initialize Explainer
+        self.explainer = None  # Disable SHAP for now due to version compatibility issues
+        self.background_data = None
+        self.feature_columns = None
+        
+        # Try to load background data for SHAP (optional, not critical)
         if os.path.exists(self.bg_path):
-            self.background_data = joblib.load(self.bg_path)
-            # Store columns for reconstruction
-            self.feature_columns = self.background_data.columns.tolist()
-            
-            # Use KernelExplainer on the predict_proba function
-            # We use a wrapper to ensure SHAP passes DataFrames to the pipeline
-            self.explainer = shap.KernelExplainer(
-                self._predict_wrapper, 
-                self.background_data
-            )
-        else:
-            self.explainer = None
-            print("Warning: SHAP background data not found. Explanations will not work.")
+            try:
+                self.background_data = joblib.load(self.bg_path)
+                # Store columns for reconstruction
+                self.feature_columns = self.background_data.columns.tolist()
+            except Exception as bg_e:
+                print(f"Warning: Could not load background data for explanations: {bg_e}")
 
     def _preprocess(self, data: dict) -> pd.DataFrame:
         """

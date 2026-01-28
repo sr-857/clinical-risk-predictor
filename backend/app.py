@@ -1,7 +1,4 @@
-from fastapi import FastAPI
+from backend.api import app
 
-app = FastAPI()
-
-@app.get("/")
-def read_root():
-    return {"Hello": "Clinical Risk Predictor"}
+# This module simply exports the app from api.py
+# Run: uvicorn backend.app:app --reload
