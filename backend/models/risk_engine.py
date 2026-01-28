@@ -15,8 +15,8 @@ class RiskEngine:
             
         self.pipeline = joblib.load(self.model_path)
         
-        # Initialize Explainer
-        self.explainer = None  # Disable SHAP for now due to version compatibility issues
+        # Initialize SHAP Explainer
+        self.explainer = None
         self.background_data = None
         self.feature_columns = None
         
@@ -26,8 +26,20 @@ class RiskEngine:
                 self.background_data = joblib.load(self.bg_path)
                 # Store columns for reconstruction
                 self.feature_columns = self.background_data.columns.tolist()
+                
+                # Initialize SHAP KernelExplainer
+                print("Initializing SHAP explainer...")
+                self.explainer = shap.KernelExplainer(
+                    self._predict_for_shap, 
+                    self.background_data,
+                    link="identity"  # We're already working with probabilities
+                )
+                print("✅ SHAP explainer initialized successfully.")
             except Exception as bg_e:
-                print(f"Warning: Could not load background data for explanations: {bg_e}")
+                print(f"Warning: Could not initialize SHAP explainer: {bg_e}")
+                self.explainer = None
+                self.background_data = None
+
 
     def _preprocess(self, data: dict) -> pd.DataFrame:
         """
@@ -36,37 +48,28 @@ class RiskEngine:
         # Convert single dict to DataFrame
         df = pd.DataFrame([data])
         
-        # Feature Engineering: BMI Categories
-        if 'bmi' in df.columns:
-            # Replicate pd.cut logic manually or using numpy to be safe/fast
-            # bins=[0, 18.5, 24.9, 29.9, 100], labels=['Underweight', 'Normal', 'Overweight', 'Obese']
-            conditions = [
-                (df['bmi'] <= 18.5),
-                (df['bmi'] > 18.5) & (df['bmi'] <= 24.9),
-                (df['bmi'] > 24.9) & (df['bmi'] <= 29.9),
-                (df['bmi'] > 29.9)
-            ]
-            choices = ['Underweight', 'Normal', 'Overweight', 'Obese']
-            df['BMI_Category'] = np.select(conditions, choices, default='Obese')
-
-        # Feature Engineering: Interactions
+        # Feature Engineering: BMI * Age (matches train_pro.py)
         if 'bmi' in df.columns and 'age' in df.columns:
             df['BMI_Age_Interaction'] = df['bmi'] * df['age']
-            
-        if 'blood_glucose_level' in df.columns and 'HbA1c_level' in df.columns:
-            df['Glucose_HbA1c_Interaction'] = df['blood_glucose_level'] * df['HbA1c_level']
         
         return df
 
-    def _predict_wrapper(self, data):
+    def _predict_for_shap(self, data):
         """
-        Wrapper to handle SHAP passing numpy arrays instead of DataFrames.
+        Wrapper for SHAP that handles prediction on preprocessed data.
+        Background data is already preprocessed, so we work directly with it.
         """
+        # Handle different input types
         if isinstance(data, np.ndarray):
-            # Reconstruct DataFrame using stored column names
+            # Convert numpy array back to DataFrame using stored column names
             data = pd.DataFrame(data, columns=self.feature_columns)
         
-        return self.pipeline.predict_proba(data)
+        # Data is already preprocessed (has engineered features)
+        # Just pass it directly to the pipeline
+        probs = self.pipeline.predict_proba(data)
+        
+        # Return probability of positive class (diabetes)
+        return probs[:, 1]
 
     def predict_risk(self, patient_data: dict) -> float:
         """
@@ -102,9 +105,16 @@ class RiskEngine:
             # 3D Array (samples, features, classes)
             # Take sample 0, all features, class 1
             risk_shap = shap_values[0, :, 1]
+        elif isinstance(shap_values, np.ndarray) and len(shap_values.shape) == 2:
+            # 2D Array (samples, features) - KernelExplainer output
+            # Take sample 0, all features
+            risk_shap = shap_values[0]
+        elif isinstance(shap_values, np.ndarray) and len(shap_values.shape) == 1:
+            # 1D Array (features) - single sample
+            risk_shap = shap_values
         else:
             # Unexpected format, fallback to printing shape and returning empty
-            print(f"Unexpected SHAP output format: {type(shap_values)}")
+            print(f"Unexpected SHAP output format: {type(shap_values)}, shape: {shap_values.shape if hasattr(shap_values, 'shape') else 'N/A'}")
             return []
         
         explanations = []

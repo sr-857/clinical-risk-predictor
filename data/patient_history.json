@@ -627,5 +627,158 @@
             "score": 0.7736778319074463,
             "level": "High"
         }
+    },
+    {
+        "timestamp": "2026-01-27T23:02:13.339865",
+        "patient_data": {
+            "gender": "Male",
+            "age": 67.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 67.0,
+            "HbA1c_level": 9.0,
+            "blood_glucose_level": 98.0
+        },
+        "risk_assessment": {
+            "score": 0.7403248924988055,
+            "level": "High"
+        }
+    },
+    {
+        "timestamp": "2026-01-27T23:02:16.955171",
+        "patient_data": {
+            "gender": "Male",
+            "age": 67.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 67.0,
+            "HbA1c_level": 9.0,
+            "blood_glucose_level": 98.0
+        },
+        "risk_assessment": {
+            "score": 0.7403248924988055,
+            "level": "High"
+        }
+    },
+    {
+        "timestamp": "2026-01-27T23:02:21.393031",
+        "patient_data": {
+            "gender": "Male",
+            "age": 67.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 68.0,
+            "HbA1c_level": 9.0,
+            "blood_glucose_level": 98.0
+        },
+        "risk_assessment": {
+            "score": 0.7403248924988055,
+            "level": "High"
+        }
+    },
+    {
+        "timestamp": "2026-01-27T23:02:31.921997",
+        "patient_data": {
+            "gender": "Male",
+            "age": 67.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 90.0,
+            "HbA1c_level": 9.0,
+            "blood_glucose_level": 98.0
+        },
+        "risk_assessment": {
+            "score": 0.7609198581738628,
+            "level": "High"
+        }
+    },
+    {
+        "timestamp": "2026-01-27T23:02:34.372004",
+        "patient_data": {
+            "gender": "Male",
+            "age": 67.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 90.0,
+            "HbA1c_level": 9.0,
+            "blood_glucose_level": 98.0
+        },
+        "risk_assessment": {
+            "score": 0.7609198581738628,
+            "level": "High"
+        }
+    },
+    {
+        "timestamp": "2026-01-27T23:02:37.693627",
+        "patient_data": {
+            "gender": "Male",
+            "age": 67.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 90.0,
+            "HbA1c_level": 9.0,
+            "blood_glucose_level": 99.0
+        },
+        "risk_assessment": {
+            "score": 0.7609198581738628,
+            "level": "High"
+        }
+    },
+    {
+        "timestamp": "2026-01-27T23:02:42.880919",
+        "patient_data": {
+            "gender": "Male",
+            "age": 78.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 90.0,
+            "HbA1c_level": 9.0,
+            "blood_glucose_level": 99.0
+        },
+        "risk_assessment": {
+            "score": 0.7403248924988055,
+            "level": "High"
+        }
+    },
+    {
+        "timestamp": "2026-01-28T15:09:47.852520",
+        "patient_data": {
+            "gender": "Male",
+            "age": 78.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "former",
+            "bmi": 34.0,
+            "HbA1c_level": 8.0,
+            "blood_glucose_level": 87.0
+        },
+        "risk_assessment": {
+            "score": 0.5348005617977527,
+            "level": "Moderate"
+        }
+    },
+    {
+        "timestamp": "2026-01-28T15:24:19.429035",
+        "patient_data": {
+            "gender": "Male",
+            "age": 67.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 23.0,
+            "HbA1c_level": 7.0,
+            "blood_glucose_level": 87.0
+        },
+        "risk_assessment": {
+            "score": 0.13609080865404374,
+            "level": "Low"
+        }
     }
 ]
