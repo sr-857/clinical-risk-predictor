@@ -38,6 +38,10 @@ def preprocess_features(df):
     if 'bmi' in df_clean.columns and 'age' in df_clean.columns:
         df_clean['BMI_Age_Interaction'] = df_clean['bmi'] * df_clean['age']
     
+    # Feature Engineering: Glucose * HbA1c (both are diabetes indicators)
+    if 'blood_glucose_level' in df_clean.columns and 'HbA1c_level' in df_clean.columns:
+        df_clean['Glucose_HbA1c_Interaction'] = df_clean['blood_glucose_level'] * df_clean['HbA1c_level']
+    
     return df_clean
 
 def train_model():
@@ -79,7 +83,7 @@ def train_model():
     # 4. Define Preprocessing Pipeline
     # Identify column types
     categorical_features = ['gender', 'smoking_history']
-    numeric_features = ['age', 'hypertension', 'heart_disease', 'bmi', 'HbA1c_level', 'blood_glucose_level', 'BMI_Age_Interaction']
+    numeric_features = ['age', 'hypertension', 'heart_disease', 'bmi', 'HbA1c_level', 'blood_glucose_level', 'BMI_Age_Interaction', 'Glucose_HbA1c_Interaction']
     
     # Verify columns exist
     numeric_features = [c for c in numeric_features if c in X_train_processed.columns]
@@ -102,9 +106,12 @@ def train_model():
 
     # 5. Define Models with Class Weights
     xgb_clf = xgb.XGBClassifier(
-        n_estimators=100,
-        max_depth=3,
+        n_estimators=150,  # Increased from 100
+        max_depth=4,  # Increased from 3 for more complex patterns
         learning_rate=0.1,
+        min_child_weight=1,  # Add to prevent overfitting
+        subsample=0.8,  # Add to prevent overfitting
+        colsample_bytree=0.8,  # Add to prevent overfitting
         scale_pos_weight=scale_pos_weight,  # Add class weight
         use_label_encoder=False,
         eval_metric='logloss',
@@ -131,7 +138,7 @@ def train_model():
     
     # 6. Create Pipeline with SMOTE
     print(f"\nApplying SMOTE to balance classes...")
-    smote = SMOTE(sampling_strategy=0.5, random_state=RANDOM_SEED)  # Increase minority class to 50% of majority
+    smote = SMOTE(sampling_strategy=0.75, random_state=RANDOM_SEED)  # Increase minority class to 75% of majority
     
     # Use imblearn Pipeline to include SMOTE
     pipeline = ImbPipeline(steps=[
