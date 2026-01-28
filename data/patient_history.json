@@ -780,5 +780,56 @@
             "score": 0.13609080865404374,
             "level": "Low"
         }
+    },
+    {
+        "timestamp": "2026-01-28T15:26:29.281648",
+        "patient_data": {
+            "gender": "Male",
+            "age": 67.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 23.0,
+            "HbA1c_level": 7.0,
+            "blood_glucose_level": 87.0
+        },
+        "risk_assessment": {
+            "score": 0.13609080865404374,
+            "level": "Low"
+        }
+    },
+    {
+        "timestamp": "2026-01-28T15:26:30.337790",
+        "patient_data": {
+            "gender": "Male",
+            "age": 67.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 23.0,
+            "HbA1c_level": 7.0,
+            "blood_glucose_level": 87.0
+        },
+        "risk_assessment": {
+            "score": 0.13609080865404374,
+            "level": "Low"
+        }
+    },
+    {
+        "timestamp": "2026-01-28T15:33:23.599958",
+        "patient_data": {
+            "gender": "Male",
+            "age": 67.0,
+            "hypertension": 0,
+            "heart_disease": 0,
+            "smoking_history": "never",
+            "bmi": 67.0,
+            "HbA1c_level": 8.0,
+            "blood_glucose_level": 89.0
+        },
+        "risk_assessment": {
+            "score": 0.7237926292273985,
+            "level": "High"
+        }
     }
 ]
